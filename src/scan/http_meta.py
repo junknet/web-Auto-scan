@@ -11,6 +11,17 @@ class HttpMeta():
         self.url = url
         self.headers = headers
         self.data = data
+        # 初始化参数
+        self.__method = self.method
+        self.__url = self.url
+        self.__headers = self.headers
+        self.__data = self.data
+
+    def restore_meta(self) -> None:
+        self.method = self.__method
+        self.data = self.__data
+        self.url = self.__url
+        self.data = self.__data
 
     def post_meta(self):
 
