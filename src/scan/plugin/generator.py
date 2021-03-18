@@ -44,6 +44,16 @@ def no_change(meta: HttpMeta):
     return meta.post_meta()
 
 
+def sql_attack_param(meta: HttpMeta, que: Queue):
+    global sql_payload
+    for param in meta.data.variables:
+        for payload in sql_payload:
+            param.updateValue(payload)
+            print(meta.post_meta())
+            que.put(meta.post_meta())
+        param.restore()
+
+
 def payloads_loading():
     global sql_payload
     path = __file__.split('/')
