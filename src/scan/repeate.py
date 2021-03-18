@@ -10,7 +10,7 @@ from threading import Thread
 import aiohttp
 from aiohttp.client import ClientSession
 from scan.parse_request import RequestParse
-from scan.plugin.generator import attack_no_change
+from scan.plugin.generator import attack_request_generator
 
 
 """
@@ -20,6 +20,7 @@ from scan.plugin.generator import attack_no_change
 默认使用5000束协程 (执行器调度可能带来大开销 待测试)
 2021.3.16 发包峰值为 1MB/s  4k包/1s
 2021.3.17 测试结果 单线程开100个协程为最佳实践
+2021.3.18 功能解耦
 """
 
 # async def do_work(que: Queue):
@@ -47,8 +48,10 @@ async def get_response(session: ClientSession, url, headers, data):
 
 async def print_someting(string):
     global count
+    global Debug
     count += 1
-    print(string, "send {} package".format(count))
+    if Debug:
+        print(string, "send {} package".format(count))
 
 
 async def post_data(que: Queue):
@@ -68,7 +71,7 @@ async def post_data(que: Queue):
 
 def producer(que: Queue):
     parsed_request = RequestParse("../request_log/25-request.txt")
-    attack_no_change(parsed_request, que)
+    attack_request_generator(parsed_request, que, Debug)
 
 
 def consumer(que: Queue):
@@ -84,6 +87,8 @@ def consumer(que: Queue):
 
 
 def main():
+    global Debug
+    Debug = True
     que = Queue()
     producer_thread = Thread(target=producer, args=(que,))
     consumer_thread = Thread(target=consumer, args=(que,))

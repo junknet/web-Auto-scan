@@ -14,7 +14,16 @@ class HttpMeta():
 
     def post_meta(self):
 
-        return(self.method, self.url, self.headers, self.data)
+        return(self.method, self.url, self.headers, self.encode_data())
+
+    def encode_data(self) -> str:
+        if "application/json" in self.headers["Content-Type"]:
+            post_data = self.data.jsonEncoded()
+        elif "x-www-form-urlencoded" in self.headers["Content-Type"]:
+            post_data = self.data.urlEncoded()
+        else:
+            post_data = self.data.multipartEncoded()
+        return post_data
 
     def __str__(self) -> str:
         """
