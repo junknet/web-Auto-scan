@@ -43,7 +43,8 @@ from scan.plugin.generator import attack_request_start
 
 async def get_response(session: ClientSession, url, headers, data):
     async with session.post(url=url, headers=headers, data=data) as response:
-        return await response.json()
+        #  切换输出text 解码成str ，避免json转化失败
+        return await response.text()
 
 
 async def print_someting(attack_response):
@@ -68,10 +69,10 @@ async def post_data(que: Queue):
             return
         async with aiohttp.ClientSession() as session:
             try:
-                # 响应包
+                # 响应宝
                 response = await get_response(session=session, url=url, headers=headers, data=data)
             except Exception as e:
-                raise e
+                return
             await print_someting((attack_kind, response))
 
 
