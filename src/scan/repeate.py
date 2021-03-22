@@ -12,6 +12,7 @@ from aiohttp.client import ClientSession
 from scan.parse_request import RequestParse
 from scan.plugin.generator import attack_request_start
 from scan.filter import filter_response_use_length
+from scan.output import report_print
 
 """
 构造出生产者消费者模型
@@ -48,17 +49,6 @@ async def get_response(session: ClientSession, url, headers, data):
         return await response.text()
 
 
-async def print_someting(attack_response):
-    """
-    attack_response 两元组(攻击名，响应包)
-    """
-    global count
-    global Debug
-    count += 1
-    if Debug:
-        print(attack_response)
-
-
 async def post_data(que: Queue):
     while True:
         # 请求包一些列参数
@@ -74,7 +64,7 @@ async def post_data(que: Queue):
             except Exception as e:
                 return
             if filter_response_use_length(url, attack_kind, response.__len__()):
-                await print_someting((attack_kind, response))
+                await report_print((attack_kind, response))
 
 
 def producer(que: Queue):
