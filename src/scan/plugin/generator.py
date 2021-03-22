@@ -36,12 +36,12 @@ def attack_request_start(parsed_request: RequestParse, que: Queue, debug: bool):
     payloads_loading()
     http_meta = parsed_request.http_meta()
     # 开始生成成攻击报文
-    # post_meta = no_change(http_meta)
+    # no_change(http_meta, que)
     sql_attack_param(http_meta, que)
 
 
-def no_change(meta: HttpMeta):
-    return meta.post_meta('no_change')
+def no_change(meta: HttpMeta, que: Queue):
+    que.put(meta.post_meta('no_change'))
 
 
 def sql_attack_param(meta: HttpMeta, que: Queue):

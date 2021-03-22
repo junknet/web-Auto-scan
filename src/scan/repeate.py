@@ -11,7 +11,7 @@ import aiohttp
 from aiohttp.client import ClientSession
 from scan.parse_request import RequestParse
 from scan.plugin.generator import attack_request_start
-
+from scan.filter import filter_response_use_length
 
 """
 构造出生产者消费者模型
@@ -21,6 +21,7 @@ from scan.plugin.generator import attack_request_start
 2021.3.16 发包峰值为 1MB/s  4k包/1s
 2021.3.17 测试结果 单线程开100个协程为最佳实践
 2021.3.18 功能解耦
+2021.3.22 增加过滤器
 """
 
 # async def do_work(que: Queue):
@@ -55,8 +56,7 @@ async def print_someting(attack_response):
     global Debug
     count += 1
     if Debug:
-        print(attack_response[0], attack_response[1],
-              "send {} package".format(count))
+        print(attack_response)
 
 
 async def post_data(que: Queue):
@@ -69,11 +69,12 @@ async def post_data(que: Queue):
             return
         async with aiohttp.ClientSession() as session:
             try:
-                # 响应宝
+                # 响应包
                 response = await get_response(session=session, url=url, headers=headers, data=data)
             except Exception as e:
                 return
-            await print_someting((attack_kind, response))
+            if filter_response_use_length(url, attack_kind, response.__len__()):
+                await print_someting((attack_kind, response))
 
 
 def producer(que: Queue):
