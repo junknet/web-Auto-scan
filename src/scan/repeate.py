@@ -10,7 +10,7 @@ from threading import Thread
 import aiohttp
 from aiohttp.client import ClientSession
 from scan.parse_request import RequestParse
-from scan.plugin.generator import attack_request_generator
+from scan.plugin.generator import attack_request_start
 
 
 """
@@ -46,32 +46,38 @@ async def get_response(session: ClientSession, url, headers, data):
         return await response.json()
 
 
-async def print_someting(string):
+async def print_someting(attack_response):
+    """
+    attack_response 两元组(攻击名，响应包)
+    """
     global count
     global Debug
     count += 1
     if Debug:
-        print(string, "send {} package".format(count))
+        print(attack_response[0], attack_response[1],
+              "send {} package".format(count))
 
 
 async def post_data(que: Queue):
     while True:
+        # 请求包一些列参数
         try:
-            (method, url, headers, data) = que.get(timeout=1/100)
+            (attack_kind, method, url, headers, data) = que.get(timeout=1/100)
+        # 忽略队列接收错误， & 强制结束协程
         except Exception as e:
             return
         async with aiohttp.ClientSession() as session:
             try:
+                # 响应包
                 response = await get_response(session=session, url=url, headers=headers, data=data)
             except Exception as e:
                 raise e
-                return
-            await print_someting(response)
+            await print_someting((attack_kind, response))
 
 
 def producer(que: Queue):
     parsed_request = RequestParse("../request_log/25-request.txt")
-    attack_request_generator(parsed_request, que, Debug)
+    attack_request_start(parsed_request, que, Debug)
 
 
 def consumer(que: Queue):

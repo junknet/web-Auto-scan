@@ -32,16 +32,16 @@ def encode_data(headers: Dict[str, str], data: VariableSet) -> str:
     return post_data
 
 
-def attack_request_generator(parsed_request: RequestParse, que: Queue, debug: bool):
+def attack_request_start(parsed_request: RequestParse, que: Queue, debug: bool):
     payloads_loading()
     http_meta = parsed_request.http_meta()
     # 开始生成成攻击报文
-    post_meta = no_change(http_meta)
+    # post_meta = no_change(http_meta)
     sql_attack_param(http_meta, que)
 
 
 def no_change(meta: HttpMeta):
-    return meta.post_meta()
+    return meta.post_meta('no_change')
 
 
 def sql_attack_param(meta: HttpMeta, que: Queue):
@@ -49,8 +49,8 @@ def sql_attack_param(meta: HttpMeta, que: Queue):
     for param in meta.data.variables:
         for payload in sql_payload:
             param.updateValue(payload)
-            print(meta.post_meta())
-            que.put(meta.post_meta())
+            # print(meta.post_meta('sql_attack_param'))
+            que.put(meta.post_meta('sql_attack_param'))
         param.restore()
 
 

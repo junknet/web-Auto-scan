@@ -23,9 +23,9 @@ class HttpMeta():
         self.url = self.__url
         self.data = self.__data
 
-    def post_meta(self):
+    def post_meta(self, attack_kind: str):
 
-        return(self.method, self.url, self.headers, self.encode_data())
+        return(attack_kind, self.method, self.url, self.headers, self.encode_data())
 
     def encode_data(self) -> str:
         if "application/json" in self.headers["Content-Type"]:
@@ -38,7 +38,7 @@ class HttpMeta():
 
     def __str__(self) -> str:
         """
-        保护视力(开始花里胡哨)
+        美化输出
         """
         colors = {
             "purple": '\033[95m',
