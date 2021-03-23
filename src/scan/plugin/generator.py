@@ -35,6 +35,7 @@ def encode_data(headers: Dict[str, str], data: VariableSet) -> str:
 def attack_request_start(parsed_request: RequestParse, que: Queue, debug: bool):
     payloads_loading()
     http_meta = parsed_request.http_meta()
+    print(http_meta)
     # 开始生成成攻击报文
     # no_change(http_meta, que)
     sql_attack_param(http_meta, que)

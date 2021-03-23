@@ -1,3 +1,4 @@
+from asyncio.tasks import sleep
 import re
 from typing import Dict
 from .variables import Variable, VariableSet
@@ -49,9 +50,9 @@ class RequestParse:
 
     def setPostData(self, boundray=None):
         self.variables = VariableSet()
-        if self.ContentType == "application/json":
+        if "application/json" in self.ContentType:
             self.variables.parseJsonEncoded(self.__content)
-        elif self.ContentType == "x-www-form-urlencoded":
+        elif "x-www-form-urlencoded" in self.ContentType:
             self.variables.parseUrlEncoded(self.__content)
         else:
             self.variables.parseMultipart(self.__content, boundray)

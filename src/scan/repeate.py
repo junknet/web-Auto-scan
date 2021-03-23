@@ -13,7 +13,7 @@ from scan.parse_request import RequestParse
 from scan.plugin.generator import attack_request_start
 from scan.filter import filter_response_use_length
 from scan.output import report_print
-
+from scan.request_files_filter import request_file_filter
 """
 构造出生产者消费者模型
 分裂成2个线程
@@ -22,7 +22,8 @@ from scan.output import report_print
 2021.3.16 发包峰值为 1MB/s  4k包/1s
 2021.3.17 测试结果 单线程开100个协程为最佳实践
 2021.3.18 功能解耦
-2021.3.22 增加过滤器
+2021.3.22 增加响应包过滤器
+2021.3.23 增加请求文件过滤
 """
 
 # async def do_work(que: Queue):
@@ -64,12 +65,14 @@ async def post_data(que: Queue):
             except Exception as e:
                 return
             if filter_response_use_length(url, attack_kind, response.__len__()):
-                await report_print((attack_kind, response))
+                await report_print(attack_kind, data, response)
 
 
 def producer(que: Queue):
-    parsed_request = RequestParse("../request_log/25-request.txt")
-    attack_request_start(parsed_request, que, Debug)
+    post_files = request_file_filter()
+    for file in post_files:
+        parsed_request = RequestParse(file)
+        attack_request_start(parsed_request, que, Debug)
 
 
 def consumer(que: Queue):
