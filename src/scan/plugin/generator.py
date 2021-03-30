@@ -1,3 +1,4 @@
+import re
 from sys import meta_path, path
 from types import MethodWrapperType
 from typing import Dict
@@ -39,11 +40,12 @@ def attack_request_start(parsed_request: RequestParse, que: Queue, debug: bool):
     base_path = '/'.join(path[:-4])+"/payload/"
     # 请求包 元信息
     http_meta = parsed_request.http_meta()
-    print(http_meta)
+    # print(http_meta)
     # 开始生成成攻击报文
     # no_change(http_meta, que)
-    sql_attack_param(http_meta, que)
-    brute_attack_login(http_meta, que)
+    # sql_attack_param(http_meta, que)
+    # brute_attack_login(http_meta, que)
+    xss_attack_param(http_meta, que)
 
 
 def no_change(meta: HttpMeta, que: Queue):
@@ -54,7 +56,6 @@ def brute_attack_login(meta: HttpMeta, que: Queue):
     data_names = meta.data.names()
     #  攻击条件检测
     if "username" in data_names and "password" in data_names:
-        print('ok')
         (usernames, passwords) = brute_attack_load()
         for param in meta.data.variables:
             if param.name == "username":
@@ -91,10 +92,28 @@ def sql_attack_param(meta: HttpMeta, que: Queue):
         param.restore()
 
 
+def xss_attack_param(meta: HttpMeta, que: Queue):
+    xss_payload = xss_payload_load()
+    for param in meta.data.variables:
+        for payload in xss_payload:
+            param.updateValue(payload)
+            que.put(meta.post_meta('xss_attack_param'))
+        param.restore()
+
+
 def sql_payload_load():
     global base_path
     try:
         return open(base_path+"Sql_Injection/Sql.txt").read().split('\n')
     except Exception as e:
         print("sql_payload load failed!")
+        raise e
+
+
+def xss_payload_load():
+    global base_path
+    try:
+        return open(base_path+"Xss/easyXss.txt").read().split('\n')
+    except Exception as e:
+        print("xss_payload load failed!")
         raise e

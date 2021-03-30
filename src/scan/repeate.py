@@ -9,11 +9,11 @@ from queue import Queue
 from threading import Thread
 import aiohttp
 from aiohttp.client import ClientSession
+from attr import dataclass
 from scan.parse_request import RequestParse
 from scan.plugin.generator import attack_request_start
-from scan.filter import filter_response_use_length
-from scan.output import report_print
 from scan.request_files_filter import request_file_filter
+from scan.check_response import check_response
 """
 构造出生产者消费者模型
 分裂成2个线程
@@ -24,6 +24,7 @@ from scan.request_files_filter import request_file_filter
 2021.3.18 功能解耦
 2021.3.22 增加响应包过滤器
 2021.3.23 增加请求文件过滤
+2021.3.25 增加暴力破解功能
 """
 
 # async def do_work(que: Queue):
@@ -54,18 +55,18 @@ async def post_data(que: Queue):
     while True:
         # 请求包一些列参数
         try:
-            (attack_kind, method, url, headers, data) = que.get(timeout=1/100)
+            (attack_kind, method, url, headers,
+             request_body) = que.get(timeout=1/100)
         # 忽略队列接收错误， & 强制结束协程
         except Exception as e:
             return
         async with aiohttp.ClientSession() as session:
             try:
                 # 响应包
-                response = await get_response(session=session, url=url, headers=headers, data=data)
+                response = await get_response(session=session, url=url, headers=headers, data=request_body)
             except Exception as e:
                 return
-            if filter_response_use_length(url, attack_kind, response.__len__()):
-                await report_print(attack_kind, data, response)
+            check_response(url, attack_kind, request_body, response)
 
 
 def producer(que: Queue):
